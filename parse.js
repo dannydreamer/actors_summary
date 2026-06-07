@@ -208,55 +208,6 @@
     return { ok: true, workshops, actors };
   }
 
-  // ─── Google Sheets API response → SheetJS workbook ───────────────────────
-
-  /**
-   * Convert a Google Sheets API v4 response (includeGridData=true) into a
-   * SheetJS-compatible workbook object so the same parseWorkbook() path is used.
-   */
-  function googleSheetsResponseToWorkbook(apiResponse) {
-    const XLSX = typeof module !== 'undefined' ? require('./node_modules/xlsx') : window.XLSX;
-    const wb = { SheetNames: [], Sheets: {} };
-
-    for (const sheet of (apiResponse.sheets || [])) {
-      const title = sheet.properties.title;
-      wb.SheetNames.push(title);
-
-      const ws = {};
-      const gridData = (sheet.data && sheet.data[0] && sheet.data[0].rowData) || [];
-      let maxRow = gridData.length;
-      let maxCol = 0;
-
-      gridData.forEach((rowData, r) => {
-        (rowData.values || []).forEach((cell, c) => {
-          if (c > maxCol) maxCol = c;
-          const addr = XLSX.utils.encode_cell({ r, c });
-          const ev = cell.effectiveValue;
-          if (!ev) { ws[addr] = { v: '', t: 's' }; return; }
-
-          if (ev.numberValue !== undefined) {
-            // Use formattedValue for date-like numbers (e.g. "1.2") to preserve d.m format
-            const fv = cell.formattedValue;
-            ws[addr] = fv ? { v: fv, t: 's' } : { v: ev.numberValue, t: 'n' };
-          } else if (ev.stringValue !== undefined) {
-            ws[addr] = { v: ev.stringValue, t: 's' };
-          } else if (ev.boolValue !== undefined) {
-            ws[addr] = { v: ev.boolValue, t: 'b' };
-          } else {
-            ws[addr] = { v: '', t: 's' };
-          }
-        });
-      });
-
-      ws['!ref'] = XLSX.utils.encode_range(
-        { s: { r: 0, c: 0 }, e: { r: maxRow, c: maxCol } }
-      );
-      wb.Sheets[title] = ws;
-    }
-
-    return wb;
-  }
-
   // ─── Public API ───────────────────────────────────────────────────────────
 
   return {
@@ -264,7 +215,6 @@
     parseActorNames,
     buildDeduplicationMap,
     parseWorkbook,
-    googleSheetsResponseToWorkbook,
     inferMonthYear,
   };
 }));

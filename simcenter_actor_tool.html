@@ -50,25 +50,16 @@
     font-size: 0.95rem;
   }
 
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  input[type="text"], input[type="file"] {
-    flex: 1;
+  input[type="file"] {
+    width: 100%;
     padding: 0.55rem 0.85rem;
     border: 1.5px solid #d1d5db;
     border-radius: 7px;
     font-size: 0.93rem;
     background: #fff;
-    direction: ltr;
-    transition: border-color 0.15s;
+    direction: rtl;
+    cursor: pointer;
   }
-
-  input[type="file"] { direction: rtl; cursor: pointer; }
-  input[type="text"]:focus { outline: none; border-color: #4f46e5; }
-  input:disabled { background: #f3f4f6; cursor: not-allowed; opacity: 0.6; }
 
   .btn {
     padding: 0.55rem 1.2rem;
@@ -80,42 +71,10 @@
     transition: background 0.15s, opacity 0.15s;
   }
 
-  .btn-primary  { background: #4f46e5; color: #fff; }
-  .btn-primary:hover:not(:disabled)  { background: #4338ca; }
   .btn-secondary { background: #e5e7eb; color: #374151; }
-  .btn-secondary:hover:not(:disabled) { background: #d1d5db; }
+  .btn-secondary:hover { background: #d1d5db; }
   .btn-success  { background: #16a34a; color: #fff; }
-  .btn-success:hover:not(:disabled)  { background: #15803d; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin: 1.25rem 0;
-    color: #9ca3af;
-    font-size: 0.85rem;
-  }
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e5e7eb;
-  }
-
-  .api-key-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    font-size: 0.85rem;
-    color: #6b7280;
-  }
-  .api-key-row input {
-    flex: 1;
-    font-size: 0.85rem;
-    padding: 0.35rem 0.6rem;
-  }
+  .btn-success:hover { background: #15803d; }
 
   /* Error screen */
   .error-panel {
@@ -161,7 +120,6 @@
     margin-bottom: 1rem;
   }
 
-  #loading-msg { color: #4f46e5; font-size: 0.93rem; margin-top: 0.75rem; }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -173,27 +131,10 @@
 
   <!-- ── STATE 1: Input ── -->
   <div id="state-input">
-
-    <div class="input-section">
-      <label for="url-input">קישור לגיליון Google Sheets</label>
-      <div class="input-row">
-        <input type="text" id="url-input" placeholder="https://docs.google.com/spreadsheets/d/..." />
-        <button class="btn btn-primary" id="btn-load-url">טען</button>
-      </div>
-      <div class="api-key-row">
-        <span>מפתח API:</span>
-        <input type="text" id="api-key-input" placeholder="AIza..." />
-      </div>
-    </div>
-
-    <div class="divider">או</div>
-
     <div class="input-section">
       <label for="file-input">העלאת קובץ Excel</label>
       <input type="file" id="file-input" accept=".xlsx" />
     </div>
-
-    <div id="loading-msg" class="hidden">טוען נתונים...</div>
   </div>
 
   <!-- ── STATE 2: Validation Error ── -->
@@ -284,51 +225,11 @@ function applyPaymentColumnFill(ws, rowCount) {
 const stateInput   = document.getElementById('state-input');
 const stateError   = document.getElementById('state-error');
 const stateSuccess = document.getElementById('state-success');
-const urlInput     = document.getElementById('url-input');
-const apiKeyInput  = document.getElementById('api-key-input');
 const fileInput    = document.getElementById('file-input');
-const loadingMsg   = document.getElementById('loading-msg');
 
 let _pendingWorkshops = null;
 let _pendingActors    = null;
 
-// Mutual exclusivity
-urlInput.addEventListener('input', () => {
-  const hasUrl = urlInput.value.trim().length > 0;
-  fileInput.disabled = hasUrl;
-});
-fileInput.addEventListener('change', () => {
-  const hasFile = fileInput.files.length > 0;
-  urlInput.disabled = hasFile;
-  apiKeyInput.disabled = hasFile;
-});
-
-// Google Sheets URL path
-document.getElementById('btn-load-url').addEventListener('click', async () => {
-  const url    = urlInput.value.trim();
-  const apiKey = apiKeyInput.value.trim();
-  if (!url || !apiKey) { alert('נא להכניס כתובת URL ומפתח API'); return; }
-
-  const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-  if (!match) { alert('כתובת URL לא תקינה'); return; }
-
-  loadingMsg.classList.remove('hidden');
-  try {
-    const endpoint =
-      `https://sheets.googleapis.com/v4/spreadsheets/${match[1]}` +
-      `?includeGridData=true&key=${apiKey}`;
-    const res = await fetch(endpoint);
-    if (!res.ok) throw new Error(`שגיאת API: ${res.status}`);
-    const json = await res.json();
-    handleWorkbook(SimCenterParser.googleSheetsResponseToWorkbook(json));
-  } catch (e) {
-    alert('שגיאה בטעינת הגיליון: ' + e.message);
-  } finally {
-    loadingMsg.classList.add('hidden');
-  }
-});
-
-// Excel upload path
 fileInput.addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -374,12 +275,7 @@ document.getElementById('btn-back-error').addEventListener('click', resetUI);
 document.getElementById('btn-back-success').addEventListener('click', resetUI);
 
 function resetUI() {
-  urlInput.value = '';
-  urlInput.disabled = false;
-  apiKeyInput.value = '';
-  apiKeyInput.disabled = false;
   fileInput.value = '';
-  fileInput.disabled = false;
   _pendingWorkshops = null;
   _pendingActors    = null;
   stateError.classList.add('hidden');

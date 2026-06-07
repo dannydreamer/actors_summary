@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-A small internal web application for the SimCenter admin. Given a monthly workshop schedule (Google Sheet or Excel file), it produces a two-sheet Excel report summarizing:
+A small internal web application for the SimCenter admin. Given a monthly workshop schedule (Excel file), it produces a two-sheet Excel report summarizing:
 - All workshops that took place that month
 - All actors who worked, how many workshops, and a checkbox column for payment order tracking
 
@@ -15,20 +15,10 @@ One admin user. No login required. No backend. Runs entirely in the browser (or 
 
 ## 2. Input
 
-The user provides **one** of the following. Not both — the UI presents two options and selecting one disables the other.
+The user uploads a `.xlsx` file (the monthly workshop schedule).
 
-### Option A — Google Sheet URL
-- User pastes a URL like `https://docs.google.com/spreadsheets/d/SHEET_ID/edit...`
-- App extracts the spreadsheet ID from the URL
-- App reads all sheets via the **Google Sheets API v4** (public read access — sheets are shared as "anyone with link can view")
-- Endpoint: `GET https://sheets.googleapis.com/v4/spreadsheets/{id}?includeGridData=true&key={API_KEY}`
-
-### Option B — Excel file upload
-- User uploads a `.xlsx` file (same structure as the Google Sheet)
 - App reads it client-side using **SheetJS (xlsx)**
 - No file size concerns — these files are small (~50 sheets, minimal data)
-
-Both paths feed into the **same parsing and validation logic**.
 
 ---
 
@@ -168,10 +158,7 @@ One row per unique actor (after deduplication).
 Single-page app. Three states:
 
 ### State 1 — Input
-- Two input options, mutually exclusive:
-  - **Google Sheet URL** — text input + "טען" button
-  - **העלאת קובץ Excel** — file upload input (`.xlsx` only)
-- Selecting one disables the other
+- Single input: **העלאת קובץ Excel** — file upload input (`.xlsx` only)
 - Hebrew UI, RTL layout
 
 ### State 2 — Validation Error
@@ -192,20 +179,13 @@ Since this is a single admin user with no backend needs:
 
 - **Pure HTML + JS** (single file, no build step) — simplest to deploy and maintain
 - **SheetJS** (xlsx) for both reading uploaded Excel AND writing output Excel
-- **Google Sheets API v4** with a simple API key (no OAuth needed — sheets are public read)
 - No framework required — vanilla JS is fine given the scope
 
 Alternatively a minimal React app if CC prefers, but keep it dependency-light.
 
 ---
 
-## 9. Google Sheets API Setup Note
-
-The app needs an API key scoped to Sheets API (read-only). This is a configuration value — either hardcoded in the app (acceptable for internal tool) or prompted from the user on first use and stored in localStorage.
-
----
-
-## 10. Edge Cases
+## 9. Edge Cases
 
 | Case | Handling |
 |------|---------|
@@ -219,7 +199,7 @@ The app needs an API key scoped to Sheets API (read-only). This is a configurati
 
 ---
 
-## 11. What This Tool Is NOT
+## 10. What This Tool Is NOT
 
 - Not multi-user
 - Not a database — no persistence beyond the downloaded Excel
