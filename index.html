@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SimCenter — דוח תשלום שחקנים</title>
+<title>כיתטיקה — דוח תשלום שחקנים</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="parse.js"></script>
 <script src="generate.js"></script>
@@ -34,6 +34,16 @@
     font-size: 1.5rem;
     margin-bottom: 0.4rem;
     color: #1a1a2e;
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .logo {
+    height: 72px;
+    width: auto;
   }
 
   .subtitle {
@@ -127,8 +137,11 @@
 <body>
 
 <div class="card">
+  <div class="brand">
+    <img src="logo.png" alt="כיתטיקה" class="logo" />
+  </div>
   <h1>דוח תשלום שחקנים</h1>
-  <p class="subtitle">SimCenter — כלי פנימי לסיכום חודשי</p>
+  <p class="subtitle">כלי פנימי לסיכום חודשי</p>
 
   <!-- ── STATE 1: Input ── -->
   <div id="state-input">
